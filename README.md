@@ -6,7 +6,7 @@ e armazena os dados em um banco PostgreSQL (atualmente hospedado no RENDER).
 ##Como rodar
 1. Clone o repositório git:
 ```bash
-git clone https://github.com/xmdsx2/moquecaufes.git
+git clone https://github.com/xmdsx2/moquecaufes
 cd moquecaufes
 ```
 2. Crie e ative um ambiente virtual: 
