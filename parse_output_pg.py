@@ -133,7 +133,7 @@ def monitor_jobs(scf_path, nscf_path):
     status = "PENDING"
     while not check_job_done(scf_path, nscf_path):
         print("Aguardando que ambos os arquivos cheguem ao fim...")
-        time.sleep(10)  # Aguardar 10 segundos antes de verificar novamente
+        time.sleep(600)  # Aguardar 10 segundos antes de verificar novamente
 
 
     status = "COMPLETED"
