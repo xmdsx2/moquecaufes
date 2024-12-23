@@ -1,45 +1,59 @@
-from db_manager_alchemy import connect_to_pg, create_or_update_table_pg, insert_job_pg, update_tables
-from parse_output_pg import parse_scf_output, parse_nscf_output
+from db_manager_alchemy import connect_to_pg, create_or_update_table_pg, insert_job_pg, update_tables, create_dft_job_status_table, insert_job_status
+from parse_output_pg import parse_scf_output, parse_nscf_output, monitor_jobs
 import json, argparse
 from datetime import datetime
 
 
 def create_database_pg(engine):
     """Inicializa o banco de dados e cria/atualiza a tabela"""
-    # connection = connect_to_pg()
-    # if connection:
-    #     create_or_update_table_pg(connection)  # Cria e/ou atualiza a tabela
-    #     connection.close()
     create_or_update_table_pg(engine=engine)
+    create_dft_job_status_table(engine=engine)
+
 
 def process_and_store_pg(scf_file, nscf_file, user_id, sys_name, connection):
-    scf_data = parse_scf_output(scf_file)
-    nscf_data = parse_nscf_output(nscf_file)
+    try:
+        status = monitor_jobs(scf_file, nscf_file)
+        scf_data = parse_scf_output(scf_file)
+        nscf_data = parse_nscf_output(nscf_file)
 
-    job_data = {
-         "user_id": user_id,
-         "sys_name": sys_name,
-         "updated_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-         "created_at": scf_data.get("created_at"),
-         "completed_at": scf_data.get("completed_at"),
-         "energy_cutoff": scf_data.get("energy_cutoff"),
-         "lattice_param": scf_data.get("lattice_param"),
-         "num_atomic_types": scf_data.get("num_atomic_types"),
-         "kohn_sham_states": scf_data.get("kohn_sham_states"),
-         "total_energy": scf_data.get("total_energy"),
-         "fermi_energy": nscf_data.get("fermi_level"),
-         "pseudopotentials": scf_data.get("pseudopotentials"),
-         "crystal_coord": scf_data.get("crystal_coord"),
-         "scf_conv": scf_data.get("scf_conv")
-    }
+        job_data = {
+             "user_id": user_id,
+             "sys_name": sys_name,
+             "updated_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+             "created_at": scf_data.get("created_at"),
+             "completed_at": scf_data.get("completed_at"),
+             "energy_cutoff": scf_data.get("energy_cutoff"),
+             "lattice_param": scf_data.get("lattice_param"),
+             "num_atomic_types": scf_data.get("num_atomic_types"),
+             "kohn_sham_states": scf_data.get("kohn_sham_states"),
+             "total_energy": scf_data.get("total_energy"),
+             "fermi_energy": nscf_data.get("fermi_level"),
+             "pseudopotentials": scf_data.get("pseudopotentials"),
+             "crystal_coord": scf_data.get("crystal_coord"),
+             "scf_conv": scf_data.get("scf_conv")
+        }
 
-    if job_data['crystal_coord']:
-        job_data['crystal_coord'] = json.dumps(job_data['crystal_coord'])
-        print("Dados preparados para inserção:", job_data)
+        if job_data['crystal_coord']:
+            job_data['crystal_coord'] = json.dumps(job_data['crystal_coord'])
+            print("Dados preparados para inserção:", job_data)
 
-    update_tables(engine)
-    insert_job_pg(job_data=job_data, engine=engine)
-    print(f"Dados armazenados com sucesso.")
+        update_tables(engine)
+        job_id = insert_job_pg(job_data=job_data, engine=engine)
+        print(f"Dados armazenados com sucesso.")
+
+        dft_status_data = {
+            "job_id": job_id,
+            "user_id": user_id,
+            "scf_file": scf_file,
+            "nscf_file": nscf_file,
+            "status": status,
+            "created_at": scf_data.get("created_at"),
+            "updated_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        }
+        insert_job_status(status_data=dft_status_data, engine=engine)
+        print("Status armazenados com sucesso.")
+    except Exception as e:
+        print(f"Erro ao processar e armazenar os dados: {e}!")
 
 
 if __name__ == '__main__':

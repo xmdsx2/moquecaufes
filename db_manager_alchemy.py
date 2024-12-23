@@ -89,6 +89,28 @@ def create_or_update_table_pg(engine):
         print(f"Erro ao criar/verificar tabela: {e}")
 
 
+def create_dft_job_status_table(engine):
+    """Cria a tabela dft_job_status de monitoramento de jobs submetidos"""
+    create_table_query = """
+    CREATE TABLE IF NOT EXISTS dft_job_status (
+        job_id SERIAL PRIMARY KEY,
+        user_id VARCHAR(255) NOT NULL,
+        scf_file VARCHAR(255) NOT NULL,
+        nscf_file VARCHAR(255) NOT NULL,
+        status VARCHAR(255) DEFAULT 'PENDING', --- PENDING, COMPLETED, FAILED
+        created_at TIMESTAMP NOT NULL,
+        updated_at TIMESTAMP
+    );
+    """
+    try:
+        with engine.connect() as connection:
+            connection.execute(text(create_table_query))
+            connection.commit()
+            print("Tabela 'dft_job_status' criada com sucesso.")
+    except SQLAlchemyError as e:
+        print(f"Erro ao criar tabela: {e}")
+
+
 def update_tables(engine):
     # Definindo as colunas esperadas com seus tipos
     expected_columns = {
@@ -150,23 +172,57 @@ def insert_job_pg(job_data, engine):
 
         # Cria o comando SQL dinâmico
         columns = filtered_data.keys()
-        values = filtered_data.values()
-
         query = f"""
             INSERT INTO dft ({', '.join(columns)}) 
             VALUES ({', '.join([f':{col}' for col in columns])})
+            RETURNING job_id
         """
+        print(f"Executando query: {query}")
+        print(f"Dados enviados: {filtered_data}")
+        print(f"Resultado: {result.all()}")
+
+        # Executa a query e retorna o job_id unico
+        try:
+            result = connection.execute(text(query), filtered_data)
+            job_id = result.scalar()
+            connection.commit()
+            if job_id is None:
+                raise ValueError("job_id não existe")
+            print(f"job_id: {job_id}")
+            return job_id
+        except Exception as e:
+            print(f"Erro ao inserir na tabela dft: {e}")
+            raise
+
+
+def insert_job_status(status_data, engine):
+    """Popula a tabela 'dft_job_status' de forma dinâmica usando SQLAlchemy."""
+
+    with engine.connect() as connection:
+        # Obtém os nomes das colunas da tabela 'dft_job_status'
+        result = connection.execute(
+            text(
+                """
+                SELECT column_name 
+                FROM information_schema.columns 
+                WHERE table_name = 'dft_job_status';
+                """
+            )
+        )
+        columns_in_table = [row[0] for row in result]
+
+        # Filtra os dados para incluir somente colunas existentes na tabela
+        filtered_data = {k: v for k, v in status_data.items() if k in columns_in_table}
+
+        # Cria o comando SQL dinâmico
+        columns = filtered_data.keys()
+        values = filtered_data.values()
+
+        query = f"""
+                INSERT INTO dft_job_status ({', '.join(columns)}) 
+                VALUES ({', '.join([f':{col}' for col in columns])})
+            """
 
         # Executa a query
         connection.execute(text(query), filtered_data)
         connection.commit()
-        print("Dados inseridos com sucesso!")
-
-
-# Testa a conexão e cria a tabela
-# conn = connect_to_pg()
-# if conn:
-#     test_connection(conn)
-#     create_or_update_table_pg(conn)
-# else:
-#     print("Erro ao conectar ao banco.")

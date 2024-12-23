@@ -1,5 +1,6 @@
 import re
 from datetime import datetime
+import time
 
 
 def extract_crystal_coordinates(content):
@@ -101,16 +102,55 @@ def parse_nscf_output(file_path):
         return {}
 
 
-if __name__ == '__main__':
-    scf_file_path = 'C:/Users/User/aws/testmoqueca/scf.out'
-    nscf_file_path = 'C:/Users/User/aws/testmoqueca/nscf.out'
+def check_job_done(scf_path, nscf_path):
+    """
+    Função para verificar se a string 'JOB DONE' está presente em ambos os arquivos.
+    Retorna True quando encontrado em ambos, caso contrário, False.
+    """
+    scf_done = False
+    nscf_done = False
 
-    # Testando a função de parsing do SCF
-    scf_data = parse_scf_output(scf_file_path)
-    print("Dados do SCF:")
-    print(scf_data)
+    try:
+        with open(scf_path, 'r') as file:
+            if "JOB DONE" in file.read():
+                scf_done = True
 
-    # Testando a função de parsing do NSCF
-    nscf_data = parse_nscf_output(nscf_file_path)
-    print("\nDados do NSCF:")
-    print(nscf_data)
+        with open(nscf_path, 'r') as file:
+            if "JOB DONE" in file.read():
+                nscf_done = True
+
+    except FileNotFoundError:
+        print(f"Arquivo {scf_path} ou {nscf_path} não encontrado.")
+
+    return scf_done and nscf_done
+
+
+def monitor_jobs(scf_path, nscf_path):
+    """
+    Função para monitorar ambos os arquivos até que a string 'JOB DONE' seja encontrada
+    em ambos os arquivos. Quando encontrada, o loop é interrompido, retornando o status.
+    """
+    status = "PENDING"
+    while not check_job_done(scf_path, nscf_path):
+        print("Aguardando que ambos os arquivos cheguem ao fim...")
+        time.sleep(10)  # Aguardar 10 segundos antes de verificar novamente
+
+
+    status = "COMPLETED"
+    print("Ambos os arquivos chegaram ao fim. Processando os dados...")
+    return status
+
+
+# if __name__ == '__main__':
+#     scf_file_path = 'C:/Users/User/aws/testmoqueca/scf.out'
+#     nscf_file_path = 'C:/Users/User/aws/testmoqueca/nscf.out'
+#
+#     # Testando a função de parsing do SCF
+#     scf_data = parse_scf_output(scf_file_path)
+#     print("Dados do SCF:")
+#     print(scf_data)
+#
+#     # Testando a função de parsing do NSCF
+#     nscf_data = parse_nscf_output(nscf_file_path)
+#     print("\nDados do NSCF:")
+#     print(nscf_data)
