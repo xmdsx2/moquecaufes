@@ -1,5 +1,5 @@
 from db_manager_alchemy import connect_to_pg, create_or_update_table_pg, insert_job_pg, update_tables, create_dft_job_status_table, insert_job_status
-from parse_output_pg import parse_scf_output, parse_nscf_output, monitor_jobs
+from parse_dft_output import parse_scf_output, parse_nscf_output, monitor_jobs
 import json, argparse
 from datetime import datetime
 
