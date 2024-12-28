@@ -5,10 +5,10 @@ Esta pipeline extrai e processa arquivos de saida de simulacoes DFT e armazena o
 
 ## Instalação:
 
-*Clone o repositório git:
-1. git clone https://github.com/xmdsx2/moquecaufes
+1. Clone o repositório git:
+`git clone https://github.com/xmdsx2/moquecaufes`
 2. Navegue até o diretório do projeto:
-cd moquecaufes
+`cd moquecaufes`
 3. Crie e ative um ambiente virtual:
 ``python -m venv .venv
 source venv/bin/Scripts/activate``
