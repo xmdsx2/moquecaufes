@@ -20,7 +20,7 @@ DB_PASSWORD=sua_senha
 DB_HOST=seu_host
 DB_PORT=5432
 DB_NAME=seu_banco``
-Executando o script:
+## Executando o script:
 
 ``python main.py --package --output caminho/do/scf.out --nscf_path caminho/do/nscf.out --user_id user_id --sys_name sys_name``
 
