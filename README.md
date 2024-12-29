@@ -22,7 +22,7 @@ DB_PORT=5432
 DB_NAME=seu_banco``
 ## Executando o script:
 
-``python main.py --package --output caminho/do/scf.out --nscf_path caminho/do/nscf.out --user_id user_id --sys_name sys_name``
+``python main.py --package {QE|VASP|ORCA} --output caminho/do/scf.out --nscf_path caminho/do/nscf.out --user_id user_id --sys_name sys_name``
 
-Os argumentos package, output, user_id e sys_name são obrigatórios. Caso nscf_path não seja fornecido  
-(apenas no QE), o nível de Fermi será tratado como NULL.
+Os argumentos package, output, user_id e sys_name são *obrigatórios*. 
+Para usuários do Quantum ESPRESSO, nscf_path é opcional, porém caso não seja fornecido, o nível de Fermi será tratado como NULL.
