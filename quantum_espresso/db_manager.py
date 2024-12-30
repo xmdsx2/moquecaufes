@@ -1,6 +1,6 @@
-from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, JSON, text, Boolean
+from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, JSON, Boolean, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.exc import SQLAlchemyError
 import dotenv, os
 
@@ -18,7 +18,7 @@ Base = declarative_base()
 class Job(Base):
     __tablename__ = 'qe_jobs'
 
-    job_id = Column(Integer, primary_key=True)
+    job_id = Column(Integer, primary_key=True, autoincrement=True)
     package = Column(String, nullable=False)
     user_id = Column(String, nullable=False)
     sys_name = Column(String, nullable=False)
@@ -35,11 +35,13 @@ class Job(Base):
     crystal_coord = Column(JSON)
     scf_conv = Column(Boolean, unique=False, default=True)
 
+    job_status = relationship("JobStatus", back_populates="job", cascade="all, delete-orphan")
 
 class JobStatus(Base):
     __tablename__ = 'qe_job_status'
 
-    job_id = Column(Integer, nullable=False, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    job_id = Column(Integer, ForeignKey('qe_jobs.job_id'))
     user_id = Column(String, nullable=False)
     scf_file = Column(String, nullable=False)
     nscf_file = Column(String, nullable=True)
@@ -47,6 +49,8 @@ class JobStatus(Base):
     package = Column(String, nullable=False)
     created_at = Column(DateTime)
     updated_at = Column(DateTime)
+
+    job = relationship('Job', back_populates='job_status')
 
 
 # Função para conectar ao banco de dados PostgreSQL
@@ -75,31 +79,13 @@ def create_or_update_tables(engine):
 
 
 # Função para inserir um job na tabela 'jobs'
-def insert_qe_data(session, data):
+def insert_qe_data(session, job):
     """Insere um job na tabela de jobs."""
     try:
-        job = Job(
-            package=data['package'],
-            user_id=data['user_id'],
-            sys_name=data['sys_name'],
-            updated_at=data['updated_at'],
-            created_at=data.get('created_at'),
-            completed_at=data.get('completed_at'),
-            energy_cutoff=data.get('energy_cutoff'),
-            lattice_param=data.get('lattice_param'),
-            num_atomic_types=data.get('num_atomic_types'),
-            kohn_sham_states=data.get('kohn_sham_states'),
-            total_energy=data.get('total_energy'),
-            fermi_energy=data.get('fermi_energy'),
-            pseudopotentials=data.get('pseudopotentials'),
-            crystal_coord=data.get('crystal_coord'),
-            scf_conv=data.get('scf_conv')
-        )
-
         session.add(job)
         session.commit()
         print("Job inserido com sucesso.")
-        return job.job_id  # Retorna o ID do job inserido
+        return job  # Retorna o ID do job inserido
     except SQLAlchemyError as e:
         session.rollback()  # Desfaz qualquer mudança caso ocorra um erro
         print(f"Erro ao inserir o job: {e}")
@@ -111,29 +97,29 @@ def insert_status_data(session, data):
     """Insere o status de um job na tabela de status."""
     try:
         #verificar se o job_id já existe
-        exists_status = session.query(JobStatus).filter_by(job_id=data['job_id']).first()
+        exists_status = session.query(JobStatus).filter_by(job_id=data.job_id).first()
         if exists_status:
-            exists_status.status = data['status']
-            exists_status.scf_file = data['scf_file']
-            exists_status.nscf_file = data['nscf_file']
-            exists_status.updated_at = data['updated_at']
+            exists_status.status = data.status
+            exists_status.scf_file = data.scf_file
+            exists_status.nscf_file = data.nscf_file
+            exists_status.updated_at = data.updated_at
             session.commit()
-            print(f"Status do job {data['job_id']} atualizado com sucesso.")
+            print(f"Status do job {data.job_id} atualizado com sucesso.")
         else:
             job_status = JobStatus(
-                job_id=data['job_id'],
-                user_id=data['user_id'],
-                scf_file=data['scf_file'],
-                nscf_file=data['nscf_file'],
-                status=data['status'],
-                package=data['package'],
-                created_at=data.get('created_at'),
-                updated_at=data.get('updated_at')
+                job_id=data.job_id,
+                user_id=data.user_id,
+                scf_file=data.scf_file,
+                nscf_file=data.nscf_file,
+                status=data.status,
+                package=data.package,
+                created_at=data.created_at,
+                updated_at=data.updated_at
             )
 
             session.add(job_status)
             session.commit()
-            print("Status do job inserido com sucesso.")
+            print(f"Status do job {data.job_id} inserido com sucesso.")
     except SQLAlchemyError as e:
         session.rollback()
         print(f"Erro ao inserir o status do job: {e}")
