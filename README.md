@@ -26,3 +26,4 @@ DB_NAME=seu_banco``
 
 Os argumentos package, output, user_id e sys_name são *obrigatórios*. 
 Para usuários do Quantum ESPRESSO, nscf_path é opcional, porém caso não seja fornecido, o nível de Fermi será tratado como NULL.
+Atualmente, o tempo limite de monitoramento da execução é de dois dias.

@@ -52,6 +52,20 @@ class JobStatus(Base):
 
     job = relationship('Job', back_populates='job_status')
 
+    @classmethod
+    def update_status(cls, session, job_id, status):
+        """
+        Atualiza ou cria um registro de status para um job específico.
+        """
+        existing_status = session.query(cls).filter_by(job_id=job_id).first()
+        if existing_status:
+            existing_status.status = status
+            existing_status.updated_at = datetime.utcnow()
+        else:
+            new_status = cls(job_id=job_id, status=status)
+            session.add(new_status)
+        session.commit()
+
 
 # Função para conectar ao banco de dados PostgreSQL
 def connect_to_db():
