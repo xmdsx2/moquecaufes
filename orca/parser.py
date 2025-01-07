@@ -59,9 +59,6 @@ def extract_orbitals_and_homos(content):
     selected_homos_down = homos_below_lumo_down[-9:]
     selected_homos_down.reverse()
 
-    print(f"10 últimos HOMOs abaixo do LUMO (up): {selected_homos_up}\n"
-          f"10 últimos HOMOs abaixo do LUMO (down): {selected_homos_down}")
-
     # Ordenar HOMOs por 'index'
     selected_homos_up.sort(key=lambda x: x['index'])
     selected_homos_down.sort(key=lambda x: x['index'])
@@ -91,6 +88,7 @@ def extract_vibrational_data(file_path):
     """
     freq_pattern = r"^\s*(\d+):\s*([\d\.]+)\s*cm\*\*-1"
     spectrum_pattern = r"^\s*(\d+):\s*([\d\.]+)\s*(\d+\.\d+)\s*(\d+\.\d+)\s*([\(\-0-9,\. \)]+)"
+    energy_pattern = r"FINAL SINGLE POINT ENERGY\s+([-+]?\d*\.\d+|\d+)"
 
     with open(file_path, 'r') as file:
         content = file.read()
@@ -109,10 +107,7 @@ def extract_vibrational_data(file_path):
     for m in spectrum_matches or []:
         # Extrair e processar as coordenadas
         coords_str = m[4].strip()  # Limpar espaços extras no início e no final da string
-        #print(f"Coordenadas extraídas: '{coords_str}'")
-
         coords_str = coords_str.split('(')[-1].split(')')[0].strip()
-        #print(f"Coordenadas após processamento: {coords_str}")
 
         coordinates = tuple(map(float, coords_str.split()))
 
@@ -124,9 +119,13 @@ def extract_vibrational_data(file_path):
             "coordinates": coordinates
         })
 
+        energy_match = re.findall(energy_pattern, content)
+        final_energy = float(energy_match[-1]) if energy_match else None
+
     return {
-        "vibrational_freq": frequencies,
-        "ir_spectrum": ir_spectrum
+        "vibrational_frequencies": frequencies,
+        "ir_spectrum": ir_spectrum,
+        "final_energy": final_energy
     }
 
 

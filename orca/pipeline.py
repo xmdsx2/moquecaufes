@@ -2,6 +2,7 @@ from .db_manager import connect_to_db, create_or_update_tables, insert_orca_data
 from .parser import extract_vibrational_data, extract_orbitals_and_homos
 from .monitor import monitor_jobs
 from datetime import datetime
+from sqlalchemy.sql import text
 
 
 def create_database_orca(engine):
@@ -20,9 +21,10 @@ def process_and_store_orca_data(output_file, user_id, sys_name, engine):
         if status in ('COMPLETED', 'RUNNING', 'FAILED'):
             orbital_data = extract_orbitals_and_homos(output_file)
             vib_data = extract_vibrational_data(output_file)
+
             spin_up_orbitals = orbital_data.get('spin_up_orbitals') if orbital_data else None
             spin_down_orbitals = orbital_data.get('spin_down_orbitals') if orbital_data else None
-            vibrational_freq = vib_data.get('vibrational_frequencies') if vib_data else None
+            vibrational_frequencies = vib_data.get('vibrational_frequencies') if vib_data else None
             ir_spectrum = vib_data.get('ir_spectrum') if vib_data else None
 
             job_data = Job(
@@ -30,15 +32,34 @@ def process_and_store_orca_data(output_file, user_id, sys_name, engine):
                 user_id=user_id,
                 sys_name=sys_name,
                 updated_at=datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                final_energy=orbital_data.get('final_energy'),
+                final_energy=orbital_data.get('final_energy') if orbital_data else vib_data.get('final_energy'),
                 spin_up_orbitals=spin_up_orbitals,
                 spin_down_orbitals=spin_down_orbitals,
-                vibrational_frequencies=vibrational_freq,
+                vibrational_frequencies=vibrational_frequencies,
                 ir_spectrum=ir_spectrum
             )
             job_data = insert_orca_data(session, job_data)
             if job_data:
+                session.execute(text(
+                    """UPDATE orca_jobs
+                        SET spin_up_orbitals = NULL
+                        WHERE spin_up_orbitals::TEXT = 'null';
+
+                        UPDATE orca_jobs
+                        SET spin_down_orbitals = NULL
+                        WHERE spin_down_orbitals::TEXT = 'null';
+                        
+                        UPDATE orca_jobs
+                        SET vibrational_frequencies = NULL
+                        WHERE vibrational_frequencies::TEXT = 'null';
+                        
+                        UPDATE orca_jobs
+                        SET ir_spectrum = NULL
+                        WHERE ir_spectrum::TEXT = 'null';
+                    """
+                ))
                 session.commit()
+
                 try:
                     orca_status_data = JobStatus(
                         job_id=job_data.job_id,
