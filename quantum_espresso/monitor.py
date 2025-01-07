@@ -1,6 +1,6 @@
 import time
 import datetime
-from db_manager import JobStatus
+from .db_manager import JobStatus
 
 
 def check_job_done(scf_path, nscf_path=None):
