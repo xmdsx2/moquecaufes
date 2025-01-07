@@ -1,7 +1,7 @@
 import json
-from db_manager import connect_to_db, create_or_update_tables, insert_qe_data, insert_status_data, create_session, JobStatus, Job
-from parser import parse_scf_output, parse_nscf_output
-from monitor import monitor_jobs
+from .db_manager import connect_to_db, create_or_update_tables, insert_qe_data, insert_status_data, create_session, JobStatus, Job
+from .parser import parse_scf_output, parse_nscf_output
+from .monitor import monitor_jobs
 from datetime import datetime
 
 
