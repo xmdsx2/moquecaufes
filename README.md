@@ -10,8 +10,8 @@ Esta pipeline extrai e processa arquivos de saida de simulacoes DFT e armazena o
 2. Navegue até o diretório do projeto:
 `cd moquecaufes`
 3. Crie e ative um ambiente virtual:
-``python -m venv .venv
-source venv/bin/Scripts/activate``
+``python -m venv .venv``
+``source venv/bin/Scripts/activate``
 4. Instale as dependências:
 ``pip install requirements.txt``
 5. Configure as variáveis de ambiente no arquivo .env:
