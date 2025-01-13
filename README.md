@@ -5,22 +5,26 @@ Esta pipeline extrai e processa arquivos de saida de simulacoes DFT e armazena o
 
 ## Instalação:
 
-1. Clone o repositório git:
+1. Clone o repositório git:<br>
 `git clone https://github.com/xmdsx2/moquecaufes`
-2. Navegue até o diretório do projeto:
+2. Navegue até o diretório do projeto:<br>
 `cd moquecaufes`
-3. Crie e ative um ambiente virtual:
-``python -m venv .venv``
+3. Crie e ative um ambiente virtual: <br>
+``python -m venv .venv``<br>
 ``source venv/bin/Scripts/activate``
-4. Instale as dependências:
+4. Instale as dependências:<br>
 ``pip install requirements.txt``
-5. Configure as variáveis de ambiente no arquivo .env:
-
-``DB_USER=seu_usuario
+5. Altere o arquivo `.env.example` para `.env`<br>
+`mv .env.example .env`
+6. Configure as variáveis de ambiente no arquivo .env:
+```
+DB_USER=seu_usuario
 DB_PASSWORD=sua_senha
 DB_HOST=seu_host
 DB_PORT=5432
-DB_NAME=seu_banco``
+DB_NAME=seu_banco
+```
+
 ## Executando o script:
 
 ``python main.py --package {QE|vasp|orca} --output caminho/do/scf.out --nscf_path caminho/do/nscf.out --user_id user_id --sys_name sys_name
