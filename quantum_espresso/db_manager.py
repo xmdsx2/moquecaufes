@@ -22,6 +22,7 @@ class Job(Base):
     package = Column(String, nullable=False)
     user_id = Column(String, nullable=False)
     sys_name = Column(String, nullable=False)
+    desc = Column(String, nullable=True)
     updated_at = Column(DateTime, nullable=False)
     created_at = Column(DateTime)
     completed_at = Column(DateTime)

@@ -10,7 +10,7 @@ def create_database(engine):
     create_or_update_tables(engine)
 
 
-def process_and_store_data(scf_file, nscf_file, user_id, sys_name, engine):
+def process_and_store_data(scf_file, nscf_file, user_id, sys_name, engine, desc):
 
     session = create_session(engine)
     if not session:
@@ -30,6 +30,7 @@ def process_and_store_data(scf_file, nscf_file, user_id, sys_name, engine):
                 package= "QE",
                 user_id= user_id,
                 sys_name= sys_name,
+                description=desc,
                 updated_at= datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                 created_at= scf_data.get("created_at"),
                 completed_at= scf_data.get("completed_at") if status == "COMPLETED" else None,
@@ -80,7 +81,7 @@ def process_and_store_data(scf_file, nscf_file, user_id, sys_name, engine):
         session.close()
 
 
-def run_pipeline(scf_file, nscf_file=None, user_id=None, sys_name=None):
+def run_pipeline(scf_file, nscf_file=None, user_id=None, sys_name=None, desc=None):
     # Conectar ao banco de dados
     engine = connect_to_db()
 
@@ -99,6 +100,7 @@ def run_pipeline(scf_file, nscf_file=None, user_id=None, sys_name=None):
         nscf_file=nscf_file,
         user_id=user_id,
         sys_name=sys_name,
-        engine=engine
+        engine=engine,
+        desc=desc
     )
 

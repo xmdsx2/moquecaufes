@@ -10,7 +10,7 @@ def create_database_orca(engine):
     create_or_update_tables(engine)
 
 
-def process_and_store_orca_data(output_file, user_id, sys_name, engine):
+def process_and_store_orca_data(output_file, user_id, sys_name, engine, desc):
     session = create_session(engine)
     if not session:
         print("Erro ao iniciar sessão no DB")
@@ -31,6 +31,7 @@ def process_and_store_orca_data(output_file, user_id, sys_name, engine):
                 package='ORCA',
                 user_id=user_id,
                 sys_name=sys_name,
+                description=desc,
                 updated_at=datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                 final_energy=orbital_data.get('final_energy') if orbital_data else vib_data.get('final_energy'),
                 spin_up_orbitals=spin_up_orbitals,
@@ -87,7 +88,7 @@ def process_and_store_orca_data(output_file, user_id, sys_name, engine):
         session.close()
 
 
-def run_pipeline(scf_file, nscf_file=None, user_id=None, sys_name=None):
+def run_pipeline(scf_file, nscf_file=None, user_id=None, sys_name=None, desc=None):
     # Conectar ao banco de dados
     engine = connect_to_db()
 
@@ -105,6 +106,7 @@ def run_pipeline(scf_file, nscf_file=None, user_id=None, sys_name=None):
         output_file=scf_file,  # Corrigido para 'output_file'
         user_id=user_id,
         sys_name=sys_name,
+        desc=desc,
         engine=engine
     )
 

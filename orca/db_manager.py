@@ -22,6 +22,7 @@ class Job(Base):
     package = Column(String, nullable=False)
     user_id = Column(String, nullable=False)
     sys_name = Column(String, nullable=False)
+    description = Column(String, nullable=True)
     updated_at = Column(DateTime, nullable=False)
     final_energy = Column(Float, nullable=False)
     spin_up_orbitals = Column(JSON, nullable=True)

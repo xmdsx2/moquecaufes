@@ -15,6 +15,7 @@ def main():
     parser.add_argument("--nscf_path", help="Caminho para o arquivo nscf.out (apenas para o QE)")
     parser.add_argument("--user_id", required=True, help="ID do usuário (string)")
     parser.add_argument("--sys_name", required=True, help="Identificador do sistema estudado")
+    parser.add_argument("--desc", required=False, help="Descrição do sistema, por exemplo átomos adicionados ou removidos")
 
     args = parser.parse_args()
     if args.package == "QE":
@@ -42,7 +43,8 @@ def main():
             scf_file=args.output,
             nscf_file=args.nscf_path,
             user_id=args.user_id,
-            sys_name=args.sys_name
+            sys_name=args.sys_name,
+            desc=args.desc
         )
 
     except Exception as e:
